@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Twitch Chat</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap');
+
+        body {
+            font-family: 'Mochiy Pop One', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            background: linear-gradient(to bottom, #F2E5E5, #D2DAFF);
+        }
+
+        .chat-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .comment {
+            width: 90%;
+            margin: 5px 0;
+            padding: 10px;
+            color: #DDDDDD;
+            background: linear-gradient(to bottom, #F2E5E5, #D2DAFF);
+            border: 2px solid transparent;
+            border-image: linear-gradient(to bottom, #FFC4C4, #9F73AB) 1;
+            opacity: 0;
+            animation: fadeInOut 5.5s ease-in-out forwards, moveUp 5.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            5% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes moveUp {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chatContainer"></div>
+    <iframe src="YOUR_TWITCH_POPUP_CHAT_URL" id="twitchChat"></iframe>
+    <script>
+        function addComment(text) {
+            const container = document.getElementById('chatContainer');
+            const comment = document.createElement('div');
+            comment.className = 'comment';
+            comment.textContent = text;
+            container.appendChild(comment);
+            setTimeout(() => {
+                container.removeChild(comment);
+            }, 5500);
+        }
+
+        document.getElementById('twitchChat').onload = () => {
+            const chatFrame = document.getElementById('twitchChat').contentWindow.document;
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('chat-line__message')) {
+                            const messageText = node.querySelector('.text-fragment').innerText;
+                            addComment(messageText);
+                        }
+                    });
+                });
+            });
+
+            observer.observe(chatFrame.querySelector('.chat-scrollable-area__message-container'), {
+                childList: true,
+                subtree: true
+            });
+        };
+    </script>
+</body>
+</html>
